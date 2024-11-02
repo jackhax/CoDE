@@ -1,34 +1,33 @@
-from random import randint
-from tqdm import tqdm  # Import tqdm for progress bars
+import threading
+import argparse
 from utils import send_file
 
 # Configuration Constants
-URL = 'http://127.0.0.1:5000/CoDE/http'
-
-
-# send_file('blob_10mb')
-
-import threading
-
-# Define the configuration constants and send_file function here
-# (Ensure this section has the previous code provided with send_file function)
+DEFAULT_URL = 'http://127.0.0.1:5000/CoDE/http'
 
 def send_file_in_thread(file_path, url):
     """Wrapper function to run send_file in a separate thread."""
     send_file(file_path, url)
 
-# List of files to send
-files_to_send = ['blob']  # Add your file paths here
+if __name__ == "__main__":
+    # Argument parser for URL
+    parser = argparse.ArgumentParser(description="Send files to HTTP CoDE server.")
+    parser.add_argument("url", nargs="?", default=DEFAULT_URL, help="URL of the server (default: http://127.0.0.1:5000/CoDE/http)")
+    parser.add_argument("files", nargs="+", help="List of file paths to send")
+    args = parser.parse_args()
 
-# Create and start a thread for each file
-threads = []
-for file in files_to_send:
-    thread = threading.Thread(target=send_file_in_thread, args=(file,URL))
-    threads.append(thread)
-    thread.start()
+    # List of files to send
+    files_to_send = args.files
 
-# Wait for all threads to complete
-for thread in threads:
-    thread.join()
+    # Create and start a thread for each file
+    threads = []
+    for file in files_to_send:
+        thread = threading.Thread(target=send_file_in_thread, args=(file, args.url))
+        threads.append(thread)
+        thread.start()
 
-# print("All files have been sent.")
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
+
+    print("All files have been sent.")

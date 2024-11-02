@@ -1,3 +1,4 @@
+import argparse
 from flask import Flask, jsonify, request
 import utils
 import struct
@@ -6,7 +7,7 @@ import logging
 
 app = Flask(__name__)
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+# log.setLevel(logging.ERROR)
 
 # Constants for flag types and buffer size
 INIT_FLAG = 0                # Flag for init packet
@@ -90,4 +91,11 @@ def get_data():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=5000)
+    # Argument parser for host and port
+    parser = argparse.ArgumentParser(description="Run the HTTP CoDE server.")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to run the server on (default: 0.0.0.0)")
+    parser.add_argument("--port", type=int, default=5000, help="Port to run the server on (default: 5000)")
+    args = parser.parse_args()
+
+    # Run the Flask app with the specified host and port
+    app.run(host=args.host, port=args.port)
