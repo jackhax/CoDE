@@ -2,8 +2,11 @@ from flask import Flask, jsonify, request
 import utils
 import struct
 import os
+import logging
 
 app = Flask(__name__)
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 # Constants for flag types and buffer size
 INIT_FLAG = 0                # Flag for init packet
@@ -51,6 +54,8 @@ def get_data():
             # Open file with a unique name and store the file handler in pending_files
             pending_files[crc32_id] = open(unique_filename, 'ab')
             buffers[crc32_id] = b""
+            
+            print(f"New file initialized: {unique_filename} (ID: {crc32_id})")
             return jsonify({"message": "File opened for writing", "ID": crc32_id, "filename": unique_filename}), 200
 
         elif flag == PAYLOAD_FLAG:  # Payload packet
@@ -63,6 +68,7 @@ def get_data():
                 pending_files[crc32_id].write(buffers[crc32_id])
                 buffers[crc32_id] = b""
             
+            # print(f"Received PAYLOAD packet, seq: {seq}, ID: {crc32_id}")
             return jsonify({"message": "Data chunk received", "seq": seq}), 200
 
         elif flag == FIN_FLAG:  # Fin packet
@@ -70,6 +76,8 @@ def get_data():
             if file:
                 file.write(buffers.pop(crc32_id, b""))  # Write remaining buffer
                 file.close()
+                
+                print(f"File transfer complete: {file.name} (ID: {crc32_id})")
                 return jsonify({"message": "File closed"}), 200
             else:
                 return jsonify({"error": "File not open or ID not found"}), 400
@@ -78,6 +86,7 @@ def get_data():
             return jsonify({"error": "Invalid flag"}), 400
 
     except Exception as e:
+        print(f"Server error: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
