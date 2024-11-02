@@ -1,2 +1,2 @@
-# CoDE: Covert data exfilteration toolkit
+# CoDE: Covert Data Exfilteration toolkit
 
